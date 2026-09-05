@@ -44,13 +44,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "WORKSPACE=/tmp/sofle-zmk-workspace" >> "$GITHUB_ENV"
+          echo "WORKSPACE=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
           echo "BUILD_DIR=/tmp/sofle-build" >> "$GITHUB_ENV"
-          mkdir -p /tmp/sofle-zmk-workspace /tmp/sofle-build
+          mkdir -p /tmp/sofle-build
 
       - name: West init and update
         shell: bash
-        working-directory: /tmp/sofle-zmk-workspace
+        working-directory: ${{ github.workspace }}
         run: |
           set -euo pipefail
           west init -l "$GITHUB_WORKSPACE/config"
@@ -65,7 +65,7 @@ jobs:
 
       - name: Build
         shell: bash
-        working-directory: /tmp/sofle-zmk-workspace
+        working-directory: ${{ github.workspace }}
         run: |
           set -euo pipefail
           west build -s "$WORKSPACE/zmk/app" -d "$BUILD_DIR" -p always \

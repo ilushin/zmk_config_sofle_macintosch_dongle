@@ -148,7 +148,7 @@ static float trackpoint_exponential_factor(int8_t dx, int8_t dy, uint32_t delta_
         delta_ms = 1U;
     }
 
-    int distance = ABS((int)dx) + ABS((int)dy);
+    int distance = abs((int)dx) + abs((int)dy);
     if (distance < 1) {
         return 1.0f;
     }
@@ -171,7 +171,7 @@ static int32_t nonlinear_divisor(int32_t abs_delta) {
 
 static void process_arrow_axis(const struct device *dev, int32_t delta, int32_t *residue,
                                uint16_t key_neg, uint16_t key_pos) {
-    int32_t abs_delta = ABS(delta);
+    int32_t abs_delta = abs(delta);
     if (abs_delta <= ARROW_DEADZONE) {
         return;
     }
@@ -191,8 +191,8 @@ static void process_arrow_axis(const struct device *dev, int32_t delta, int32_t 
 }
 
 static void apply_dominant_axis(int32_t *dx, int32_t *dy) {
-    int32_t abs_dx = ABS(*dx);
-    int32_t abs_dy = ABS(*dy);
+    int32_t abs_dx = abs(*dx);
+    int32_t abs_dy = abs(*dy);
 
     if (abs_dy * DOMINANT_DENOMINATOR > abs_dx * DOMINANT_NUMERATOR) {
         *dx = 0;
