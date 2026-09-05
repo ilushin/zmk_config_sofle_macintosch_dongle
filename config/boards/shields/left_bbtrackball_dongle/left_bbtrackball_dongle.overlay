@@ -1,22 +1,30 @@
-/*
-*
-* Copyright (c) 2025 ZitaoTech
-* SPDX-License-Identifier: MIT
-*
-*/
+/* Copyright (c) 2025 ZitaoTech - SPDX-License-Identifier: MIT */
+
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 
 / {
-    chosen {
-        zmk,trackball_led = &trackball_led;
-    };
-    trackball_led: pwmledo{
+    chosen { zmk,trackball_led = &trackball_led; };
+
+    trackball_led: pwmledo {
         compatible = "pwm-leds";
-        pwm_led_0 {
-            pwms = <&pwm1 0 PWM_USEC(20) PWM_POLARITY_NORMAL>;
+        pwm_led_0 { pwms = <&pwm1 0 PWM_USEC(20) PWM_POLARITY_NORMAL>; };
+    };
+
+    split_inputs {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        bbtrackball_split: bbtrackball_split@2 {
+            compatible = "zmk,input-split";
+            reg = <2>;
         };
     };
 
+    bbtrackball_listener: bbtrackball_listener {
+        compatible = "zmk,input-listener";
+        status = "disabled";
+        device = <&bbtrackball_split>;
+    };
 };
 
 &pwm1 {
@@ -34,41 +42,14 @@
     };
 };
 
-/ {
-    split_inputs {
-        #address-cells = <1>;
-        #size-cells = <0>;
-
-        /* BB Trackball */
-        bbtrackball_split: bbtrackball_split@0 {
-            compatible = "zmk,input-split";
-            reg = <0>;
-        };
-
-    };
-
-    /* Listeners */
-    bbtrackball_listener: bbtrackball_listener {
-        compatible = "zmk,input-listener";
-        status = "disabled";
-        device = <&bbtrackball_split>;
-    };
-
-};
-
-
 &bbtrackball_split {
     device = <&bbtrackball>;
 };
 
-
 &pinctrl {
-    pwm1_default:pwm1_default{
-        group1{
-            psels = <NRF_PSEL(PWM_OUT0, 0, 7)>; // Backlight for Trackball
-        };
+    pwm1_default: pwm1_default {
+        group1 { psels = <NRF_PSEL(PWM_OUT0, 0, 7)>; };
     };
-
     pwm1_sleep: pwm1_sleep {
         group1 {
             psels = <NRF_PSEL(PWM_OUT0, 0, 7)>;
@@ -76,4 +57,3 @@
         };
     };
 };
-

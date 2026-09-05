@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2023 ZitaoTech
- *
  * SPDX-License-Identifier: MIT
  */
 
@@ -27,38 +26,21 @@
     kscan0: kscan {
         compatible = "zmk,kscan-gpio-matrix";
         diode-direction = "col2row";
-        row-gpios
-            = <&gpio0 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            ;
-        col-gpios
-            = <&gpio0 17  GPIO_ACTIVE_HIGH>
-            ;
+        row-gpios = <&gpio0 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+        col-gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
     };
-
 
     vbatt: vbatt {
         compatible = "zmk,battery-voltage-divider";
         io-channels = <&adc 2>;
         output-ohms = <2000000>;
-        full-ohms = <2820000>;  // 2000000 + 820000
-    };
-};
-
-
-/ {
-    split_inputs {
-        #address-cells = <1>;
-        #size-cells = <0>;
-
-        trackpoint_split: trackpoint_split@0 {
-            compatible = "zmk,input-split";
-            reg = <0>;
-        };
+        full-ohms = <2820000>;
     };
 
-};
-
-/ {
+    /*
+     * Each peripheral pointing source requires a unique input-split ID.
+     * 0 = left A320 trackpad, 1 = right TrackPoint, 2 = optional left trackball.
+     */
     split_inputs {
         #address-cells = <1>;
         #size-cells = <0>;
@@ -67,35 +49,30 @@
             compatible = "zmk,input-split";
             reg = <0>;
         };
-    };
 
-};
-
-/ {
-    split_inputs {
-        #address-cells = <1>;
-        #size-cells = <0>;
-
-        bbtrackball_split: bbtrackball_split@0 {
+        trackpoint_split: trackpoint_split@1 {
             compatible = "zmk,input-split";
-            reg = <0>;
+            reg = <1>;
+        };
+
+        bbtrackball_split: bbtrackball_split@2 {
+            compatible = "zmk,input-split";
+            reg = <2>;
         };
     };
 
-};
-
-
-/ {
     trackpoint_listener: trackpoint_listener {
         compatible = "zmk,input-listener";
         status = "disabled";
         device = <&trackpoint_split>;
     };
+
     bbtrackpad_listener: bbtrackpad_listener {
         compatible = "zmk,input-listener";
         status = "disabled";
         device = <&bbtrackpad_split>;
     };
+
     bbtrackball_listener: bbtrackball_listener {
         compatible = "zmk,input-listener";
         status = "disabled";
@@ -112,8 +89,6 @@
         <&ip_behaviors2>,
         <&ip_behaviors3>;
 };
-
-
 
 &bbtrackpad_listener {
     status = "okay";
@@ -134,7 +109,6 @@
         <&ip_behaviors2>,
         <&ip_behaviors3>;
 };
-
 
 &adc {
     status = "okay";
@@ -159,14 +133,10 @@
     pinctrl-names = "default", "sleep";
 };
 
-
-
-
 &pinctrl {
-
-    pwm0_default:pwm0_default{
-        group1{
-            psels = <NRF_PSEL(PWM_OUT0, 0, 16)>; // Backlight for backlight.c unreal
+    pwm0_default: pwm0_default {
+        group1 {
+            psels = <NRF_PSEL(PWM_OUT0, 0, 16)>;
         };
     };
 
@@ -176,9 +146,10 @@
             bias-pull-down;
         };
     };
+
     spi3_default: spi3_default {
         group1 {
-            psels = <NRF_PSEL(SPIM_MOSI, 0, 9)>;    
+            psels = <NRF_PSEL(SPIM_MOSI, 0, 9)>;
         };
     };
 
@@ -190,26 +161,20 @@
     };
 };
 
-
 &spi3 {
     compatible = "nordic,nrf-spim";
     status = "okay";
-
     pinctrl-0 = <&spi3_default>;
     pinctrl-1 = <&spi3_sleep>;
     pinctrl-names = "default", "sleep";
 
     led_strip: ws2812@0 {
         compatible = "worldsemi,ws2812-spi";
-        /* SPI */
-        reg = <0>; 
+        reg = <0>;
         spi-max-frequency = <400000>;
-        /* WS2812 */
-        chain-length = <1>; 
+        chain-length = <1>;
         spi-one-frame = <0x70>;
         spi-zero-frame = <0x40>;
-        color-mapping = <LED_COLOR_ID_GREEN
-                         LED_COLOR_ID_RED
-                         LED_COLOR_ID_BLUE>;
+        color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;
     };
 };

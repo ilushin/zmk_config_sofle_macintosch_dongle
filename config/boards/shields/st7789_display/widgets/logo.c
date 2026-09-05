@@ -6,6 +6,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 static bool second_cycle = false;
 static bool animation_running = false;
 static bool animation_initialized = false;
+static lv_timer_t *logo_timer;
 
 static uint8_t logo_animation_width = 15;
 static uint8_t logo_animation_height = 6;
@@ -248,7 +249,7 @@ void print_initial_animation() {
     uint8_t logo_chars_len = 5;
     print_string(snake_logo_buf, logo_chars, snake_logo_x, snake_logo_y, snake_logo_font_scale, get_logo_font_color(), get_logo_bg_color(), FONT_SIZE_3x5, char_gap_pixels, logo_chars_len);
     
-    for (uint16_t i; i < animation_sections_total; i++) {
+    for (uint16_t i = 0; i < animation_sections_total; i++) {
         Section s = get_section(i);
         if (i == 5 || i == 6 || i == 7) {
             print_animation_space(s);
@@ -276,7 +277,9 @@ void reset_animation_count() {
 }
 
 void logo_animation_timer(lv_timer_t * timer) {
+    logo_timer = timer;
     if (!animation_running) {
+        lv_timer_pause(timer);
         return;
     }
 
@@ -321,6 +324,9 @@ void logo_animation_timer(lv_timer_t * timer) {
 
 void stop_animation() {
     animation_running = false;
+    if (logo_timer != NULL) {
+        lv_timer_pause(logo_timer);
+    }
 }
 
 void start_animation() {
@@ -328,6 +334,9 @@ void start_animation() {
     reset_animation_count();
     animation_initialized = false;
     animation_running = true;
+    if (logo_timer != NULL) {
+        lv_timer_resume(logo_timer);
+    }
 }
 
 void logo_animation_init() {

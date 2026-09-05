@@ -6,57 +6,68 @@ config SHIELD_RIGHT_TRACKPOINT_DONGLE
 
 menu "TrackPoint Advanced Settings"
 
+config TRACKPOINT_LOG_LEVEL
+    int "TrackPoint log level (0=off, 1=error, 2=warning, 3=info, 4=debug)"
+    default 2
+    range 0 4
+
 config TRACKPOINT_EXPONENTIAL
     bool "Enable TrackPoint exponential acceleration"
     default y
-    help
-      Enable exponential acceleration for TrackPoint movement,
 
 config TRACKPOINT_SCROLL_X_DIR
-    int "Scroll X direction multiplier (1 for normal, -1 for inverted)"
+    int "Scroll X direction multiplier"
     default 1
+    range -1 1
 
 config TRACKPOINT_SCROLL_Y_DIR
-    int "Scroll Y direction multiplier (1 for normal, -1 for inverted)"
+    int "Scroll Y direction multiplier"
     default 1
+    range -1 1
 
 config TRACKPOINT_SCROLL_DEADZONE
     int "Scroll deadzone"
     default 2
-    help
-      Deadzone to filter out slight hand tremors.
+    range 0 32
 
 config TRACKPOINT_SCROLL_INPUT_MAX
-    int "Scroll input max"
+    int "Scroll input maximum"
     default 128
+    range 1 255
 
 config TRACKPOINT_SCROLL_DIVISOR_SLOW
-    int "Scroll divisor slow (Fine-grained control)"
+    int "Slow scroll divisor"
     default 60
+    range 1 255
 
 config TRACKPOINT_SCROLL_DIVISOR_FAST
-    int "Scroll divisor fast (Max speed limit)"
+    int "Fast scroll divisor"
     default 8
+    range 1 255
 
 config TRACKPOINT_DOMINANT_NUMERATOR
-    int "Dominant axis numerator for accidental touch prevention"
+    int "Dominant axis numerator"
     default 3
+    range 1 16
 
 config TRACKPOINT_DOMINANT_DENOMINATOR
-    int "Dominant axis denominator for accidental touch prevention"
+    int "Dominant axis denominator"
     default 2
+    range 1 16
 
 config TRACKPOINT_MOUSE_BASE_SPEED_PERCENT
-    int "Mouse base speed (Percentage, 50 = 0.5)"
+    int "Mouse base speed percentage"
     default 50
+    range 10 400
 
 config TRACKPOINT_MOUSE_SENS_BASE_PERCENT
-    int "Mouse sensitivity base (Percentage, 30 = 0.3)"
+    int "Mouse sensitivity base percentage"
     default 30
+    range 0 400
 
 config TRACKPOINT_MOUSE_SENS_STEP_PERCENT
-    int "Mouse sensitivity step per LED brightness (Percentage, 1 = 0.01)"
+    int "Mouse sensitivity step per LED brightness"
     default 1
-
+    range 0 20
 
 endmenu

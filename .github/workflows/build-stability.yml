@@ -1,0 +1,111 @@
+name: Build Sofle stability firmware
+
+"on":
+  workflow_dispatch:
+  push:
+    branches:
+      - firmware-stability-windows-v2
+    paths:
+      - "config/**"
+      - "tools/**"
+      - ".github/workflows/build-stability.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: zmkfirmware/zmk-build-arm:stable
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Dongle Windows Stable
+            board: sofle_dongle
+            shield: st7789_display
+            artifact: Sofle_Dongle_Windows_Stable
+            stability_conf: windows_stable_dongle.conf
+          - name: Left Trackpad Stable
+            board: sofle_dongle_left
+            shield: lpm_view;left_bbtrackpad_dongle
+            artifact: Sofle_Left_Trackpad_Stable
+            stability_conf: windows_stable_peripheral.conf
+          - name: Right TrackPoint Stable
+            board: sofle_dongle_right
+            shield: lpm_view;right_trackpoint_dongle
+            artifact: Sofle_Right_TrackPoint_Stable
+            stability_conf: windows_stable_peripheral.conf
+
+    name: ${{ matrix.name }}
+    steps:
+      - name: Checkout configuration
+        uses: actions/checkout@v4
+
+      - name: Initialize workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "WORKSPACE=/tmp/sofle-zmk-workspace" >> "$GITHUB_ENV"
+          echo "BUILD_DIR=/tmp/sofle-build" >> "$GITHUB_ENV"
+          mkdir -p /tmp/sofle-zmk-workspace /tmp/sofle-build
+
+      - name: West init and update
+        shell: bash
+        working-directory: /tmp/sofle-zmk-workspace
+        run: |
+          set -euo pipefail
+          west init -l "$GITHUB_WORKSPACE/config"
+          west update --fetch-opt=--filter=tree:0
+          west zephyr-export
+
+      - name: Apply upstream nRF52840 controller stability fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 "$GITHUB_WORKSPACE/tools/apply_zephyr_nrf52840_radio_fix.py" "$WORKSPACE/zephyr"
+
+      - name: Build
+        shell: bash
+        working-directory: /tmp/sofle-zmk-workspace
+        run: |
+          set -euo pipefail
+          west build -s "$WORKSPACE/zmk/app" -d "$BUILD_DIR" -p always \
+            -b "${{ matrix.board }}" -- \
+            -DZMK_CONFIG="$GITHUB_WORKSPACE/config" \
+            -DSHIELD="${{ matrix.shield }}" \
+            -DEXTRA_CONF_FILE="$GITHUB_WORKSPACE/config/stability/${{ matrix.stability_conf }}" \
+            -DEXTRA_DTC_OVERLAY_FILE="$GITHUB_WORKSPACE/config/stability/windows_stable.overlay"
+
+      - name: Verify production interface settings
+        shell: bash
+        run: |
+          set -euo pipefail
+          CONFIG_FILE="$BUILD_DIR/zephyr/.config"
+          grep -q '^# CONFIG_ZMK_STUDIO is not set$' "$CONFIG_FILE"
+          grep -q '^# CONFIG_ZMK_USB_LOGGING is not set$' "$CONFIG_FILE"
+          test -f "$BUILD_DIR/zephyr/zmk.uf2"
+
+      - name: Prepare artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifact
+          cp "$BUILD_DIR/zephyr/zmk.uf2" "artifact/${{ matrix.artifact }}.uf2"
+          sha256sum "artifact/${{ matrix.artifact }}.uf2" > "artifact/${{ matrix.artifact }}.sha256"
+          cp "$BUILD_DIR/zephyr/.config" "artifact/${{ matrix.artifact }}.config"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: artifact/
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Merge stability firmware
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: Sofle_Stability_Firmware
+          pattern: Sofle_*_Stable
+          delete-merged: true

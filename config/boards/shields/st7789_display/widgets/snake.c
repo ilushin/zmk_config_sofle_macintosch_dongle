@@ -37,6 +37,7 @@ static Snake_List *snake_list;
 
 static bool snake_widget_initialized = false;
 static bool stopped = false;
+static lv_timer_t *snake_timer;
 static struct snake_wpm_status_state snake_state;
 
 // ############## SPEED ############
@@ -755,15 +756,28 @@ void zmk_widget_snake_init() {
 }
 
 void initialize_snake_game() {
-    lv_timer_create(timer_snake, CONFIG_SNAKE_WALK_INTERVAL, NULL);
+    if (snake_timer == NULL) {
+        snake_timer = lv_timer_create(timer_snake, CONFIG_SNAKE_WALK_INTERVAL, NULL);
+    }
+    if (snake_timer != NULL) {
+        lv_timer_pause(snake_timer);
+    }
 
     snake_widget_initialized = true;
     stopped = true;
 }
 
-void start_snake() { stopped = false; }
+void start_snake() {
+    stopped = false;
+    if (snake_timer != NULL) {
+        lv_timer_resume(snake_timer);
+    }
+}
 
 void stop_snake() {
     stopped = true;
+    if (snake_timer != NULL) {
+        lv_timer_pause(snake_timer);
+    }
     finalize_snake();
 }

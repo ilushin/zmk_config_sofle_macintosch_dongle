@@ -1,0 +1,11 @@
+/* Remove the CDC ACM / serial RPC interface from the production build. */
+/ {
+    chosen {
+        /delete-property/ zephyr,console;
+        /delete-property/ zmk,studio-rpc-uart;
+    };
+};
+
+&cdc_acm_uart {
+    status = "disabled";
+};
